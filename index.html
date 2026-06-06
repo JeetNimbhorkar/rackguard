@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RackGuard</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="page">
+      <section class="login-card" id="loginView" aria-label="RackGuard sign in">
+        <div class="brand">
+          <img src="Scania-Logo.jpg" alt="Scania">
+          <h1>RackGuard</h1>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username">
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password">
+          </div>
+
+          <p class="error-message" id="errorMessage" role="alert"></p>
+
+          <button type="submit">Log in</button>
+        </form>
+      </section>
+
+      <section class="workspace is-hidden" id="loggedInView" aria-label="RackGuard workspace">
+        <header>
+          <div>
+            <img src="Scania-Logo.jpg" alt="Scania">
+            <span>RackGuard</span>
+          </div>
+          <button type="button" id="logoutButton">Log out</button>
+        </header>
+
+        <div class="workspace-body" id="workspaceBody">
+          <p id="roleLabel">Logged in</p>
+          <h2>Logged in</h2>
+          <p id="loggedInMessage">This workspace is ready for the next workflow screen.</p>
+        </div>
+      </section>
+
+      <div class="modal-layer is-hidden" id="issueModal" aria-hidden="true">
+        <section class="issue-modal" role="dialog" aria-modal="true" aria-labelledby="issueModalTitle">
+          <header class="modal-header">
+            <div>
+              <p>Report new issue</p>
+              <h2 id="issueModalTitle">Rack inspection intake</h2>
+            </div>
+            <button type="button" class="icon-button" id="closeIssueModal" aria-label="Close">x</button>
+          </header>
+
+          <div class="modal-content">
+            <section class="form-section">
+              <h3>Rack identification</h3>
+              <div class="select-grid">
+                <label>
+                  Department
+                  <select id="departmentSelect">
+                    <option value="">Select department</option>
+                    <option>Warehouse Operations</option>
+                    <option>Engine Assembly</option>
+                    <option>Inbound Logistics</option>
+                  </select>
+                </label>
+
+                <label>
+                  Building / Zone
+                  <select id="zoneSelect">
+                    <option value="">Select building / zone</option>
+                    <option>Building C - Zone 3</option>
+                    <option>Building A - Zone 1</option>
+                    <option>Building F - Zone 2</option>
+                  </select>
+                </label>
+
+                <label>
+                  Rack number
+                  <select id="rackSelect">
+                    <option value="">Select rack number</option>
+                    <option>RACK-C7 - Aisle C Row 7</option>
+                    <option>RACK-A2 - Aisle A Row 2</option>
+                    <option>RACK-F4 - Aisle F Row 4</option>
+                  </select>
+                </label>
+              </div>
+              <div class="duplicate-alert is-hidden" id="duplicateAlert">
+                Issue already noted for the same rack. Current status is not fixed.
+              </div>
+            </section>
+
+            <div class="overdue-alert is-hidden" id="overdueAlert">
+              <strong>Inspection overdue by 12 days</strong>
+              <span>This rack was due for inspection on 24 May 2026. Please complete immediately.</span>
+            </div>
+
+            <section class="form-section schedule-section is-hidden" id="scheduleSection">
+              <h3>Inspection schedule</h3>
+              <div class="schedule-grid">
+                <div class="schedule-card">
+                  <span>Last inspected</span>
+                  <strong>12 Feb 2026</strong>
+                </div>
+                <div class="schedule-card due">
+                  <span>Inspection due</span>
+                  <strong>24 May 2026</strong>
+                </div>
+                <div class="schedule-card next">
+                  <span>Next inspection</span>
+                  <strong>05 Sep 2026</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section upload-section is-hidden" id="uploadSection">
+              <h3>Rack images</h3>
+              <label class="drop-zone" for="rackImageInput" id="dropZone">
+                <input id="rackImageInput" type="file" accept="image/*">
+                <span>Drag and drop rack image here</span>
+                <strong>Upload image</strong>
+                <small id="fileName">No image selected</small>
+              </label>
+            </section>
+          </div>
+
+          <div class="analysis-content is-hidden" id="analysisContent">
+            <section class="detected-issues-card">
+              <div class="detected-heading">
+                <h3>Detected issues</h3>
+                <span>5 found</span>
+              </div>
+
+              <div class="issue-list">
+                <article class="issue-row severity-red">
+                  <span class="severity-dot" aria-hidden="true"></span>
+                  <div>
+                    <strong>Bent upright column</strong>
+                    <p>Checkpoint: Beams, stays, pillars and beam locking pins</p>
+                  </div>
+                </article>
+
+                <article class="issue-row severity-red">
+                  <span class="severity-dot" aria-hidden="true"></span>
+                  <div>
+                    <strong>Beam impact damage</strong>
+                    <p>Checkpoint: Collision protection</p>
+                  </div>
+                </article>
+
+                <article class="issue-row severity-yellow">
+                  <span class="severity-dot" aria-hidden="true"></span>
+                  <div>
+                    <strong>Beam locking pin missing</strong>
+                    <p>Checkpoint: Beams, stays and pillars</p>
+                  </div>
+                </article>
+
+                <article class="issue-row severity-yellow">
+                  <span class="severity-dot" aria-hidden="true"></span>
+                  <div>
+                    <strong>Floor crack near base</strong>
+                    <p>Checkpoint: Condition of the floor</p>
+                  </div>
+                </article>
+
+                <article class="issue-row severity-yellow">
+                  <span class="severity-dot" aria-hidden="true"></span>
+                  <div>
+                    <strong>Permitted load sign obscured</strong>
+                    <p>Checkpoint: Signs and load plates</p>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
+
+          <div class="classification-content is-hidden" id="classificationContent">
+            <section class="classification-review">
+              <div class="severity-legend" aria-label="Severity classification guide">
+                <div class="legend-item green">
+                  <span></span>
+                  <strong>Green</strong>
+                  <small>Rack OK</small>
+                </div>
+                <div class="legend-item yellow">
+                  <span></span>
+                  <strong>Yellow</strong>
+                  <small>Action plan needed</small>
+                </div>
+                <div class="legend-item red">
+                  <span></span>
+                  <strong>Red</strong>
+                  <small>Cordon off immediately</small>
+                </div>
+              </div>
+
+              <h3>Tap to classify each detected issue</h3>
+
+              <div class="classification-list">
+                <article class="classification-card red" data-issue-card>
+                  <div class="classification-detail">
+                    <span class="issue-icon">!</span>
+                    <div>
+                      <strong>Bent upright column</strong>
+                      <p>Checkpoint: Beams, stays and pillars</p>
+                      <small>AI suggests: Red - structural risk</small>
+                    </div>
+                  </div>
+                  <div class="severity-selector" role="group" aria-label="Bent upright column severity">
+                    <button type="button" data-severity="green">Green</button>
+                    <button type="button" data-severity="yellow">Yellow</button>
+                    <button type="button" class="selected" data-severity="red">Red</button>
+                  </div>
+                </article>
+
+                <article class="classification-card red" data-issue-card>
+                  <div class="classification-detail">
+                    <span class="issue-icon">x</span>
+                    <div>
+                      <strong>Beam impact damage</strong>
+                      <p>Checkpoint: Collision protection</p>
+                      <small>AI suggests: Red - load bearing compromised</small>
+                    </div>
+                  </div>
+                  <div class="severity-selector" role="group" aria-label="Beam impact damage severity">
+                    <button type="button" data-severity="green">Green</button>
+                    <button type="button" data-severity="yellow">Yellow</button>
+                    <button type="button" class="selected" data-severity="red">Red</button>
+                  </div>
+                </article>
+
+                <article class="classification-card yellow" data-issue-card>
+                  <div class="classification-detail">
+                    <span class="issue-icon">w</span>
+                    <div>
+                      <strong>Beam locking pin missing</strong>
+                      <p>Checkpoint: Beams, stays and pillars</p>
+                      <small>AI suggests: Yellow - replace before next shift</small>
+                    </div>
+                  </div>
+                  <div class="severity-selector" role="group" aria-label="Beam locking pin missing severity">
+                    <button type="button" data-severity="green">Green</button>
+                    <button type="button" class="selected" data-severity="yellow">Yellow</button>
+                    <button type="button" data-severity="red">Red</button>
+                  </div>
+                </article>
+
+                <article class="classification-card yellow" data-issue-card>
+                  <div class="classification-detail">
+                    <span class="issue-icon">/</span>
+                    <div>
+                      <strong>Floor crack near base</strong>
+                      <p>Checkpoint: Condition of the floor</p>
+                      <small>AI suggests: Yellow - monitor and schedule repair</small>
+                    </div>
+                  </div>
+                  <div class="severity-selector" role="group" aria-label="Floor crack near base severity">
+                    <button type="button" data-severity="green">Green</button>
+                    <button type="button" class="selected" data-severity="yellow">Yellow</button>
+                    <button type="button" data-severity="red">Red</button>
+                  </div>
+                </article>
+
+                <article class="classification-card yellow" data-issue-card>
+                  <div class="classification-detail">
+                    <span class="issue-icon">i</span>
+                    <div>
+                      <strong>Permitted load sign obscured</strong>
+                      <p>Checkpoint: Signs and load plates</p>
+                      <small>AI suggests: Yellow - replace/reposition sign</small>
+                    </div>
+                  </div>
+                  <div class="severity-selector" role="group" aria-label="Permitted load sign obscured severity">
+                    <button type="button" data-severity="green">Green</button>
+                    <button type="button" class="selected" data-severity="yellow">Yellow</button>
+                    <button type="button" data-severity="red">Red</button>
+                  </div>
+                </article>
+              </div>
+
+              <div class="severity-summary">
+                <div>
+                  <strong id="redCount">2</strong>
+                  <span>Red</span>
+                </div>
+                <div>
+                  <strong id="yellowCount">3</strong>
+                  <span>Yellow</span>
+                </div>
+                <div>
+                  <strong id="greenCount">0</strong>
+                  <span>Green</span>
+                </div>
+                <div>
+                  <strong id="totalCount">5</strong>
+                  <span>Total</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="protocol-content is-hidden" id="protocolContent">
+            <section class="protocol-document">
+              <div class="protocol-title">
+                <div>
+                  <p>Visual inspection</p>
+                  <strong class="protocol-code">SAH-BC-07-18</strong>
+                  <h2>Protocol for visual inspection of rack</h2>
+                </div>
+                <span>AI filled draft</span>
+              </div>
+
+              <div class="protocol-grid four">
+                <label>
+                  Inspection performed by
+                  <input id="protocolInspector" value="inspector1" required>
+                </label>
+                <label>
+                  Senior engineer
+                  <input id="protocolEngineer" value="inspector1" required>
+                </label>
+                <label>
+                  Signature
+                  <input id="protocolSignature" value="inspector1" required>
+                </label>
+                <label>
+                  Date
+                  <input id="protocolDate" required>
+                </label>
+              </div>
+
+              <div class="protocol-grid four">
+                <label>
+                  Location / Department
+                  <input id="protocolLocation" required>
+                </label>
+                <label>
+                  Building / Zone
+                  <input id="protocolBuilding" required>
+                </label>
+                <label>
+                  Item number
+                  <input id="protocolItemNumber" required>
+                </label>
+                <label>
+                  Note
+                  <input value="">
+                </label>
+              </div>
+
+              <div class="protocol-load">
+                <h3>Load sign data</h3>
+                <div class="protocol-grid four">
+                  <label>
+                    Manufacturer / supplier
+                    <input value="Scania internal rack system" required>
+                  </label>
+                  <label>
+                    Type designation
+                    <input value="Pallet rack - production storage" required>
+                  </label>
+                  <label>
+                    Max. load / section
+                    <input value="3000 kg" required>
+                  </label>
+                  <label>
+                    Max. load / bearing surface
+                    <input value="1000 kg" required>
+                  </label>
+                </div>
+              </div>
+
+              <div class="protocol-assessment">
+                <h3>Checkpoints and assessment</h3>
+                <div class="protocol-table" role="table" aria-label="Visual inspection checklist">
+                  <div class="protocol-row header" role="row">
+                    <span>Inspection point</span>
+                    <span>Green</span>
+                    <span>Yellow</span>
+                    <span>Red</span>
+                    <span>Assessment</span>
+                    <span>Note</span>
+                  </div>
+
+                  <div class="protocol-row" role="row">
+                    <span>Condition of the floor</span>
+                    <span><input type="radio" name="floorStatus" value="green"></span>
+                    <span><input type="radio" name="floorStatus" value="yellow" checked></span>
+                    <span><input type="radio" name="floorStatus" value="red"></span>
+                    <span><input class="score-input" value="2"></span>
+                    <span><textarea required>Floor crack near base. Damage may influence rack stability and should be monitored with scheduled repair.</textarea></span>
+                  </div>
+
+                  <div class="protocol-row" role="row">
+                    <span>Collision protection</span>
+                    <span><input type="radio" name="collisionStatus" value="green"></span>
+                    <span><input type="radio" name="collisionStatus" value="yellow"></span>
+                    <span><input type="radio" name="collisionStatus" value="red" checked></span>
+                    <span><input class="score-input" value="3"></span>
+                    <span><textarea required>Beam impact damage detected. Area should be cordoned off until competent review confirms safe status.</textarea></span>
+                  </div>
+
+                  <div class="protocol-row" role="row">
+                    <span>Beams, stays, pillars and beam locking pins</span>
+                    <span><input type="radio" name="beamStatus" value="green"></span>
+                    <span><input type="radio" name="beamStatus" value="yellow"></span>
+                    <span><input type="radio" name="beamStatus" value="red" checked></span>
+                    <span><input class="score-input" value="3"></span>
+                    <span><textarea required>Bent upright column and missing beam locking pin observed. Structural risk and locking component deviation require immediate action.</textarea></span>
+                  </div>
+
+                  <div class="protocol-row" role="row">
+                    <span>Pull-out units</span>
+                    <span><input type="radio" name="pullOutStatus" value="green" checked></span>
+                    <span><input type="radio" name="pullOutStatus" value="yellow"></span>
+                    <span><input type="radio" name="pullOutStatus" value="red"></span>
+                    <span><input class="score-input" value="1"></span>
+                    <span><textarea required>No pull-out unit damage visible in uploaded inspection image.</textarea></span>
+                  </div>
+
+                  <div class="protocol-row" role="row">
+                    <span>Half-pallet insert</span>
+                    <span><input type="radio" name="halfPalletStatus" value="green" checked></span>
+                    <span><input type="radio" name="halfPalletStatus" value="yellow"></span>
+                    <span><input type="radio" name="halfPalletStatus" value="red"></span>
+                    <span><input class="score-input" value="1"></span>
+                    <span><textarea required>Half-pallet insert appears seated correctly where visible.</textarea></span>
+                  </div>
+
+                  <div class="protocol-row" role="row">
+                    <span>Sign permitted load</span>
+                    <span><input type="radio" name="signStatus" value="green"></span>
+                    <span><input type="radio" name="signStatus" value="yellow" checked></span>
+                    <span><input type="radio" name="signStatus" value="red"></span>
+                    <span><input class="score-input" value="2"></span>
+                    <span><textarea required>Permitted load sign is partially obscured. Reposition or replace before next confirmed inspection.</textarea></span>
+                  </div>
+
+                  <div class="protocol-row" role="row">
+                    <span>Lighting</span>
+                    <span><input type="radio" name="lightingStatus" value="green" checked></span>
+                    <span><input type="radio" name="lightingStatus" value="yellow"></span>
+                    <span><input type="radio" name="lightingStatus" value="red"></span>
+                    <span><input class="score-input" value="1"></span>
+                    <span><textarea required>Lighting appears sufficient for visual inspection in the uploaded image.</textarea></span>
+                  </div>
+
+                  <div class="protocol-row" role="row">
+                    <span>Good order in aisles</span>
+                    <span><input type="radio" name="aisleStatus" value="green" checked></span>
+                    <span><input type="radio" name="aisleStatus" value="yellow"></span>
+                    <span><input type="radio" name="aisleStatus" value="red"></span>
+                    <span><input class="score-input" value="1"></span>
+                    <span><textarea required>Aisle area appears free from loose material and wild storage in the submitted view.</textarea></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="protocol-grid three">
+                <label>
+                  Rack offers adequate safety
+                  <select required>
+                    <option>No</option>
+                    <option>Yes</option>
+                  </select>
+                </label>
+                <label>
+                  Actions
+                  <select required>
+                    <option>Taken out of operation</option>
+                    <option>Repair</option>
+                  </select>
+                </label>
+                <label>
+                  Manager name / date informed
+                  <input id="protocolManager" value="manager1" required>
+                </label>
+              </div>
+              <p class="protocol-error" id="protocolError" role="alert"></p>
+            </section>
+          </div>
+
+          <footer class="modal-actions">
+            <button type="button" class="secondary-action" id="cancelIssueModal">Cancel</button>
+            <button type="button" class="secondary-action is-hidden" id="backIssueButton">Back</button>
+            <button type="button" id="nextIssueButton" disabled>Next</button>
+          </footer>
+        </section>
+      </div>
+
+      <div class="viewer-layer is-hidden" id="viewerLayer" aria-hidden="true">
+        <section class="viewer-modal" role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+          <header class="modal-header">
+            <div>
+              <p>Previous inspection report</p>
+              <h2 id="viewerTitle">Submitted item</h2>
+            </div>
+            <button type="button" class="icon-button" id="closeViewer" aria-label="Close">x</button>
+          </header>
+          <div class="viewer-content" id="viewerContent"></div>
+        </section>
+      </div>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
